@@ -15,7 +15,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
         with:
-          fetch-depth: 0  # full history for SonarQube analysis
+          fetch-depth: 0
 
       # 2️⃣ Setup Node.js
       - name: Setup Node.js
@@ -42,7 +42,11 @@ jobs:
       - name: Trivy filesystem scan
         run: trivy fs . > trivyfs.txt
 
-      # 7️⃣ Docker build and push
+      # 7️⃣ Setup Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # 8️⃣ Docker build and push
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
