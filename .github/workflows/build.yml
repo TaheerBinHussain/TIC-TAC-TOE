@@ -54,5 +54,35 @@ jobs:
           push: true
           tags: taheer12/tic-tac-toe:latest
           load: true
+
       - name: trivy image scan
         run: trivy image taheer12/tic-tac-toe:latest > trivyimage.txt
+
+  deploy:
+    needs: build-analyze-scan
+    runs-on: self-hosted
+    steps:
+      - name: docker pull image
+        run: docker pull taheer12/tic-tac-toe:latest
+
+      - name: Image scan
+        run: trivy image taheer12/tic-tac-toe:latest > trivyimagedeploy.txt  
+
+      - name: Deploy to container
+        run: docker run -d --name game -p 3000:3000 taheer12/tic-tac-toe:latest
+
+      - name: Update kubeconfig
+        run: aws eks --region eu-north-1 update-kubeconfig --name EKS_CLOUD
+
+      - name: Deploy to kubernetes
+        run: kubectl apply -f deployment-service.yml
+
+      - name: Send a Slack Notification
+        if: always()
+        uses: act10ns/slack@v1
+        with:
+          status: ${{ job.status }}
+          steps: ${{ toJson(steps) }}
+          channel: '#githubactions-eks'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
