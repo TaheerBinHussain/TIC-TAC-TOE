@@ -54,3 +54,5 @@ jobs:
           push: true
           tags: taheer12/tic-tac-toe:latest
           load: true
+      - name: trivy image scan
+        run: trivy image taheer12/tic-tac-toe:latest > trivyimage.txt
