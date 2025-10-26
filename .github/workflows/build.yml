@@ -34,7 +34,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
-      # 5️⃣ Build the React app
+      # 5️⃣ Build the React
       - name: Build React app
         run: npm run build
 
