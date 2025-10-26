@@ -21,3 +21,12 @@ jobs:
         run: npm install
       - name: trivy file scan
         run: trivy fs . > trivyfs.txt
+      - name: docker build and push
+        run: | 
+         docker build -t tic-tac-toe .
+         docker tag tic-tac-toe taheer12/tic-tac-toe:latest
+         docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
+         docker push taheer12/tic-tac-toe:latest
+         enc: DOCKER_CLI_ACI: 1 
+         
+         
