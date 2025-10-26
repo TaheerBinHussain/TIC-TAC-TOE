@@ -1,32 +1,52 @@
-name: Build,Analyze,scan
+name: Build, Analyze, Scan
+
 on:
   push:
     branches:
       - main
+
 jobs:
   build-analyze-scan:
-    name: Build
-    runs-on: [self-hosted]
+    name: Build, Analyze & Deploy
+    runs-on: self-hosted
+
     steps:
+      # 1️⃣ Checkout code
       - name: Checkout code
         uses: actions/checkout@v2
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+          fetch-depth: 0  # full history for SonarQube analysis
+
+      # 2️⃣ Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      # 3️⃣ Install dependencies
+      - name: Install npm dependencies
+        run: npm install
+
+      # 4️⃣ Build & analyze with SonarQube
       - name: Build and analyze with SonarQube
-        uses: sonarsource/sonarqube-scan-action@master
+        uses: sonarsource/sonarqube-scan-action@v1
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-      - name: npm install dependency
-        run: npm install
-      - name: trivy file scan
+
+      # 5️⃣ Build the React app
+      - name: Build React app
+        run: npm run build
+
+      # 6️⃣ Security scan with Trivy
+      - name: Trivy filesystem scan
         run: trivy fs . > trivyfs.txt
-      - name: docker build and push
-        run: | 
-         docker build -t tic-tac-toe .
-         docker tag tic-tac-toe taheer12/tic-tac-toe:latest
-         docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
-         docker push taheer12/tic-tac-toe:latest
-         enc: DOCKER_CLI_ACI: 1 
-         
-         
+
+      # 7️⃣ Docker build and push
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: taheer12/tic-tac-toe:latest
+          load: true
